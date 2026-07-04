@@ -1,0 +1,23 @@
+/* ═══════════════════════════════════════════════════════════
+   GIRINGO — DESIGN TOKENS
+   Central source of truth for colors, fonts and animated
+   custom properties. Do not hard-code these values elsewhere.
+═══════════════════════════════════════════════════════════ */
+:root {
+  /* Palette */
+  --blood: #8b0000;
+  --crimson: #dc143c;
+  --ember: #ff3344;
+  --gold: #b8960c;
+  --void: #050005;
+
+  /* Typography */
+  --font-title: 'Cinzel', serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-elegant: 'Cormorant Garamond', serif;
+
+  /* Animated state (driven by JS — see assets/js/glitch.js and bloodmoon.js) */
+  --corrupt: 0; /* 0-1 corruption level */
+  --moon: 0;    /* 0-1 blood moon intensity */
+}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>GIRINGO — If Wishes Could Kill</title>
+
+<meta name="description" content="GIRINGO: an anonymous wish-granting ritual. Speak your desire to the Oracle, an AI-driven entity, and watch it join the live wish feed — for a price.">
+<meta name="keywords" content="giringo, ghost.corp, wish ritual, ai oracle, anthropic claude, interactive fiction, horror web experience">
+<meta name="author" content="Ghost.Corp / YCGHOST">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://example.com/giringo/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="GIRINGO — If Wishes Could Kill">
+<meta property="og:description" content="Some wishes demand a price. Speak yours to the Oracle.">
+<meta property="og:image" content="assets/icons/favicon.svg">
+<meta property="og:url" content="https://example.com/giringo/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GIRINGO — If Wishes Could Kill">
+<meta name="twitter:description" content="Some wishes demand a price. Speak yours to the Oracle.">
+<meta name="twitter:image" content="assets/icons/favicon.svg">
+<meta name="theme-color" content="#000000">
+
+<link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+<link rel="apple-touch-icon" href="assets/icons/favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/variables.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/landing.css">
+<link rel="stylesheet" href="assets/css/wish-ritual.css">
+<link rel="stylesheet" href="assets/css/feed.css">
+<link rel="stylesheet" href="assets/css/profile.css">
+<link rel="stylesheet" href="assets/css/overlays.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<!-- Custom cursor (decorative; disabled on touch devices, see responsive.css) -->
+<div id="cursor" aria-hidden="true"></div>
+<div id="cursor-trail" aria-hidden="true"></div>
+
+<!-- HUD corners -->
+<div class="corner-tl" aria-hidden="true"></div><div class="corner-tr" aria-hidden="true"></div>
+<div class="corner-bl" aria-hidden="true"></div><div class="corner-br" aria-hidden="true"></div>
+
+<!-- Atmosphere -->
+<div class="fog-layer" aria-hidden="true">
+  <div class="fog-orb fog-orb-1"></div><div class="fog-orb fog-orb-2"></div>
+  <div class="fog-orb fog-orb-3"></div><div class="fog-orb fog-orb-4"></div>
+</div>
+<div id="streaks" aria-hidden="true"></div>
+
+<!-- Blood moon indicator -->
+<div id="moon-indicator" aria-hidden="true">BLOOD MOON ACTIVE</div>
+
+<!-- Toast notifications -->
+<div id="toast-container" aria-live="polite" role="status"></div>
+
+<!-- Fullscreen ritual overlay -->
+<div id="ritual-overlay" role="alertdialog" aria-modal="true" aria-labelledby="overlayTitle" aria-describedby="overlayText">
+  <svg class="overlay-eye" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Oracle's eye">
+    <defs>
+      <linearGradient id="og" x1="50%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stop-color="#dc143c" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#3a0000" stop-opacity=".9"/>
+      </linearGradient>
+      <radialGradient id="oeg" cx="50%" cy="50%"><stop offset="0%" stop-color="#ff2244"/><stop offset="100%" stop-color="#8b0000"/></radialGradient>
+    </defs>
+    <polygon points="100,10 192,162 8,162" fill="url(#og)" stroke="rgba(220,20,60,.85)" stroke-width="1.5"/>
+    <ellipse cx="100" cy="108" rx="42" ry="28" fill="rgba(0,0,0,.9)" stroke="rgba(220,20,60,.6)" stroke-width="1"/>
+    <ellipse cx="100" cy="108" rx="20" ry="24" fill="url(#oeg)"/>
+    <ellipse cx="100" cy="108" rx="9" ry="11" fill="rgba(0,0,0,.9)"/>
+    <ellipse cx="95" cy="102" rx="4" ry="4.5" fill="rgba(255,255,255,.9)"/>
+  </svg>
+  <div class="overlay-title" id="overlayTitle">THE ORACLE WATCHES</div>
+  <div class="overlay-text" id="overlayText">Your wish has been received. The void remembers everything. Every desire leaves a scar.</div>
+  <button class="overlay-close" onclick="closeOverlay()">CLOSE TRANSMISSION</button>
+</div>
+
+<!-- Hidden lore fragments (easter egg, revealed via revealLore()) -->
+<div class="hidden-lore" id="lore1" style="bottom:12%;left:3%;width:180px;" aria-hidden="true">GIRINGO WAS FOUNDED ON A SINGLE BROKEN WISH<br>THE FIRST WISHER NEVER RETURNED</div>
+<div class="hidden-lore" id="lore2" style="top:18%;right:2%;width:160px;text-align:right;" aria-hidden="true">WISH #001 CORRUPTED THE FEED<br>IT STILL ECHOES</div>
+<div class="hidden-lore" id="lore3" style="bottom:8%;right:4%;width:170px;text-align:right;" aria-hidden="true">THE ORACLE HAS NO NAME<br>ONLY MEMORY</div>
+
+<!-- Lore fragment on landing -->
+<div class="lore-fragment" id="landingLore" aria-hidden="true">// The first wisher left no trace. Only the wish remains. //</div>
+
+<!-- ════════════════════ LANDING ════════════════════ -->
+<div id="landing" class="page active">
+  <nav aria-label="Primary">
+    <button class="nav-logo glitch" data-text="GIRINGO" onclick="go('landing')">GIRINGO</button>
+    <div class="nav-links">
+      <button class="nav-link" onclick="go('feed')">WISH FEED</button>
+      <button class="nav-link" onclick="go('make-wish')">MAKE A WISH</button>
+      <button class="nav-link" onclick="go('profile')">PROFILE</button>
+      <button class="nav-btn" onclick="go('feed')">ACCESS</button>
+    </div>
+  </nav>
+  <main id="main-content" class="landing-hero">
+    <div class="illuminati-logo" id="illumLogo">
+      <div class="illum-ring illum-ring-1" aria-hidden="true"></div><div class="illum-ring illum-ring-2" aria-hidden="true"></div>
+      <svg class="illum-svg" id="illumEye" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The GIRINGO all-seeing eye emblem">
+        <defs>
+          <linearGradient id="tg" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#dc143c" stop-opacity=".72"/>
+            <stop offset="55%" stop-color="#8b0000" stop-opacity=".82"/>
+            <stop offset="100%" stop-color="#2a0000" stop-opacity=".92"/>
+          </linearGradient>
+          <radialGradient id="eyeg" cx="50%" cy="50%"><stop offset="0%" stop-color="#ff2244"/><stop offset="42%" stop-color="#dc143c"/><stop offset="100%" stop-color="#3a0000"/></radialGradient>
+          <radialGradient id="pupilg" cx="40%" cy="38%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/><stop offset="45%" stop-color="#ff2244"/><stop offset="100%" stop-color="#8b0000"/></radialGradient>
+          <filter id="gf"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(139,0,0,.18)" stroke-width=".5"/>
+        <polygon points="100,10 192,162 8,162" fill="url(#tg)" stroke="rgba(220,20,60,.82)" stroke-width="1.5" stroke-linejoin="round" filter="url(#gf)"/>
+        <polygon points="100,26 178,158 22,158" fill="none" stroke="rgba(255,80,80,.16)" stroke-width=".5"/>
+        <ellipse cx="100" cy="108" rx="42" ry="28" fill="rgba(0,0,0,.9)" stroke="rgba(220,20,60,.65)" stroke-width="1" filter="url(#gf)"/>
+        <ellipse cx="100" cy="108" rx="20" ry="24" fill="url(#eyeg)" filter="url(#gf)"/>
+        <ellipse id="eyePupil" cx="100" cy="108" rx="9" ry="11" fill="url(#pupilg)"/>
+        <ellipse cx="95" cy="102" rx="3.5" ry="4" fill="rgba(255,255,255,.92)"/>
+        <path d="M64,93 Q100,76 136,93" fill="none" stroke="rgba(220,20,60,.52)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M64,123 Q100,140 136,123" fill="none" stroke="rgba(220,20,60,.52)" stroke-width="1" stroke-linecap="round"/>
+        <line x1="100" y1="68" x2="100" y2="10" stroke="rgba(220,20,60,.1)" stroke-width=".5"/>
+        <line x1="130" y1="76" x2="168" y2="42" stroke="rgba(220,20,60,.08)" stroke-width=".5"/>
+        <line x1="70" y1="76" x2="32" y2="42" stroke="rgba(220,20,60,.08)" stroke-width=".5"/>
+        <line x1="10" y1="162" x2="190" y2="162" stroke="rgba(220,20,60,.45)" stroke-width="1"/>
+        <circle cx="10" cy="162" r="2.5" fill="rgba(220,20,60,.6)"/><circle cx="190" cy="162" r="2.5" fill="rgba(220,20,60,.6)"/><circle cx="100" cy="10" r="2.5" fill="rgba(220,20,60,.6)"/>
+        <text x="22" y="176" fill="rgba(139,0,0,.62)" font-size="7" font-family="serif">ᚠᚢᚦᚨ</text>
+        <text x="126" y="176" fill="rgba(139,0,0,.62)" font-size="7" font-family="serif">ᚱᚲᛁᚷ</text>
+      </svg>
+    </div>
+    <div class="series-title-wrap">
+      <h1 class="series-main-title" data-text="IF WISHES COULD KILL">GIRINGO</h1>
+      <div class="series-divider"><div class="sdiv-line" aria-hidden="true"></div><span class="sdiv-text">✦ GHOST.CORP ✦</span><div class="sdiv-line" aria-hidden="true"></div></div>
+      <p class="series-sub">A story where desire becomes destruction</p>
+    </div>
+    <div class="hero-tagline">
+      <p class="hero-headline glitch" data-text="Some wishes demand a price.">Some wishes demand a price.</p>
+      <p class="hero-sub">Enter at your own risk</p>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="go('feed')"><span>ENTER GIRINGO</span></button>
+      <button class="btn-secondary" onclick="go('make-wish')">MAKE A WISH</button>
+    </div>
+    <div class="hero-warning"><p class="warning-text">// Be careful what you wish for //</p></div>
+  </main>
+  <div class="vignette" aria-hidden="true"></div>
+</div>
+
+<!-- ════════════════════ MAKE WISH ════════════════════ -->
+<div id="make-wish" class="page">
+  <nav aria-label="Primary">
+    <button class="nav-logo glitch" data-text="GIRINGO" onclick="go('landing')">GIRINGO</button>
+    <div class="nav-links">
+      <button class="nav-link" onclick="go('feed')">WISH FEED</button>
+      <button class="nav-link" onclick="go('profile')">PROFILE</button>
+      <button class="nav-btn" onclick="go('landing')">← HOME</button>
+    </div>
+  </nav>
+
+  <main>
+  <!-- Step 1: Form -->
+  <div id="mw-step1" class="mw-step active" style="padding-top:80px;">
+    <div class="mw-container">
+      <div class="terminal-header">
+        <div class="terminal-bar">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span class="terminal-title">GIRINGO_WISH_ORACLE v4.0 · AI RITUAL ENGINE ONLINE</span>
+        </div>
+        <div class="terminal-line">&gt; REAL ORACLE ACTIVE · ANTHROPIC CLAUDE INTEGRATION · ALL WISHES ARE BINDING</div>
+        <div class="terminal-line" style="opacity:.4">&gt; IDENTITY MASKED · ENTER YOUR BIRTHDATE AND WISH TO BEGIN</div>
+      </div>
+
+      <!-- Oracle config -->
+      <div class="mw-card" style="margin-bottom:14px;">
+        <div class="mw-grid" aria-hidden="true"></div>
+        <div style="position:relative;z-index:1;">
+          <label class="api-key-label" for="apiKeyInput">Oracle API Key (Claude) — Leave blank to use built-in fallback oracle</label>
+          <div class="api-key-row">
+            <input type="password" class="api-key-input" id="apiKeyInput" autocomplete="off" placeholder="sk-ant-... (optional, stored in memory only)"/>
+            <button class="api-key-save" onclick="saveApiKey()">BIND KEY</button>
+          </div>
+          <div id="apiKeyStatus" role="status" style="font-family:var(--font-mono);font-size:9px;color:rgba(139,0,0,.5);letter-spacing:.2em;margin-top:6px;"></div>
+        </div>
+      </div>
+
+      <div class="mw-card">
+        <div class="mw-grid" aria-hidden="true"></div>
+        <div style="position:relative;z-index:1;">
+          <div id="myRank" class="oracle-rank hidden">⬡ <span id="rankName">SEEKER</span></div>
+          <label class="mw-label" for="dob">Date of Birth — The ritual requires your birth mark</label>
+          <input type="date" class="mw-input" id="dob"/>
+          <label class="mw-label" for="wishText">Your Wish — Speak it to the void. Be precise. Be honest.</label>
+          <textarea class="mw-textarea" id="wishText" placeholder="I wish..."></textarea>
+          <button class="mw-btn" onclick="beginRitual()"><span>⟳ &nbsp; ENTER THE RITUAL &nbsp; ⟳</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ritual chat -->
+  <div id="ritual-chat">
+    <div style="padding:88px 40px 0;max-width:800px;margin:0 auto;width:100%;">
+      <div class="terminal-header">
+        <div class="terminal-bar">
+          <div style="width:5px;height:5px;border-radius:50%;background:var(--blood);animation:dotP 2s infinite;" aria-hidden="true"></div>
+          <span class="terminal-title">WISH RITUAL · <span id="msgCounter">0</span>/5 EXCHANGES · <span id="oracleMode">ORACLE LISTENING</span></span>
+        </div>
+        <div class="terminal-line">&gt; The Oracle speaks. Answer truthfully. Your wish depends on it.</div>
+      </div>
+    </div>
+    <div class="ritual-messages" id="ritualMessages" aria-live="polite">
+      <div class="ritual-inner" id="ritualInner"></div>
+    </div>
+    <div class="ritual-footer">
+      <div class="ritual-input-row">
+        <label class="sr-only" for="ritualInput">Respond to the Oracle</label>
+        <input type="text" class="ritual-input" id="ritualInput" placeholder="Respond to the Oracle..." onkeydown="if(event.key==='Enter')sendRitual()"/>
+        <button class="ritual-send" id="ritualSendBtn" onclick="sendRitual()">SPEAK</button>
+      </div>
+      <div class="ritual-meta">🔒 &nbsp; ENCRYPTED · ANONYMOUS · WISH BINDING IN PROGRESS · AI ORACLE ACTIVE</div>
+    </div>
+  </div>
+  </main>
+</div>
+
+<!-- ════════════════════ FEED ════════════════════ -->
+<div id="feed" class="page">
+  <nav aria-label="Primary">
+    <button class="nav-logo glitch" data-text="GIRINGO" onclick="go('landing')">GIRINGO</button>
+    <div class="nav-links">
+      <button class="nav-link" onclick="go('make-wish')">MAKE A WISH</button>
+      <button class="nav-link" onclick="go('profile')">PROFILE</button>
+      <button class="nav-btn" onclick="go('profile')">⬡ PROFILE</button>
+    </div>
+  </nav>
+  <main class="feed-layout">
+    <aside class="sidebar" aria-label="Feed sidebar">
+      <div class="s-card" style="animation-delay:.04s">
+        <div class="s-title"><div class="s-dot" aria-hidden="true"></div> Live Alerts</div>
+        <div class="s-item" id="alertWishes">0 wishes manifested</div>
+        <div class="s-item" id="alertReactions">0 reactions given</div>
+        <div class="s-item danger" id="alertDark">0 dark wishes active</div>
+      </div>
+      <div class="s-card" style="animation-delay:.09s">
+        <div class="s-title">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          TRENDING THREADS
+        </div>
+        <div class="tag-item">#bloodprice &nbsp; 2.4k</div>
+        <div class="tag-item">#noreturn &nbsp; 1.8k</div>
+        <div class="tag-item">#void &nbsp; 934</div>
+        <div class="tag-item">#consequence &nbsp; 712</div>
+        <div class="tag-item">#forbidden &nbsp; 501</div>
+      </div>
+      <button class="s-card" style="animation-delay:.14s;border-color:rgba(139,0,0,.25);" onclick="go('make-wish')">
+        <span class="s-title" style="display:flex;">✦ MAKE A WISH</span>
+        <span style="display:block;font-family:var(--font-elegant);font-size:13px;color:rgba(255,255,255,.28);font-style:italic;line-height:1.55;">The void is listening.<br>The Oracle is waiting.</span>
+      </button>
+      <!-- Lore card (hidden until unlocked) -->
+      <div class="s-card hidden" id="loreCard" style="animation-delay:.18s;border-color:rgba(184,150,12,.2);">
+        <div class="s-title" style="color:rgba(184,150,12,.55);">⬡ ORACLE LORE</div>
+        <div id="loreText" style="font-family:var(--font-mono);font-size:9px;color:rgba(184,150,12,.45);letter-spacing:.1em;line-height:1.7;"></div>
+      </div>
+    </aside>
+    <div class="main-feed">
+      <div class="feed-hdr">
+        <h2 class="feed-ttl">// LIVE WISH FEED //</h2>
+        <div style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.17);letter-spacing:.2em;">REALTIME · ANONYMOUS · MONITORED</div>
+      </div>
+      <div id="feedCards" aria-live="polite"></div>
+    </div>
+  </main>
+  <button class="fab" onclick="go('make-wish')" aria-label="Make a wish">
+    <svg class="fab-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════ PROFILE ════════════════════ -->
+<div id="profile" class="page">
+  <nav aria-label="Primary">
+    <button class="nav-logo glitch" data-text="GIRINGO" onclick="go('landing')">GIRINGO</button>
+    <div class="nav-links">
+      <button class="nav-link" onclick="go('feed')">FEED</button>
+      <button class="nav-link" onclick="go('make-wish')">MAKE WISH</button>
+      <button class="nav-btn" onclick="go('feed')">← FEED</button>
+    </div>
+  </nav>
+  <main style="padding-top:80px;position:relative;z-index:10;">
+    <div class="prof-container">
+      <div class="prof-card" style="animation-delay:.04s">
+        <div class="prof-hero">
+          <div class="prof-avatar" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(139,0,0,.85)" stroke-width="1.2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div class="prof-name">ANONYMOUS</div>
+            <p class="prof-quote" id="profQuote">"Every wish has a cost. I've paid mine."</p>
+            <div class="prof-stats">
+              <div><div class="stat-val" id="pWishes">0</div><div class="stat-lbl">Wishes</div></div>
+              <div><div class="stat-val danger" id="pDark">0</div><div class="stat-lbl">Dark Wishes</div></div>
+              <div><div class="stat-val" id="pReactions">0</div><div class="stat-lbl">Reactions</div></div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div class="risk-badge">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              ANON USER
+            </div>
+            <div class="level-badge">IDENTITY: PROTECTED</div>
+          </div>
+        </div>
+      </div>
+      <!-- Rank display -->
+      <div class="prof-card" style="animation-delay:.08s;">
+        <div class="rank-display" id="rankDisplay">
+          <div class="rank-icon" id="rankIcon" aria-hidden="true">🌑</div>
+          <div>
+            <div class="rank-name" id="rankNameProf">UNINITIATED</div>
+            <div class="rank-desc" id="rankDesc">You have not yet spoken to the void</div>
+          </div>
+        </div>
+      </div>
+      <div class="prof-card" style="animation-delay:.12s;border-color:rgba(139,0,0,.22);">
+        <h2 class="cst">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          Wish Assessment
+        </h2>
+        <div class="threat-grid">
+          <div><div class="metric-lbl">Dark Intent</div><div class="metric-track"><div class="metric-fill warn" id="mf1"></div></div><div class="metric-val warn" id="mv1">0%</div></div>
+          <div><div class="metric-lbl">Desire Strength</div><div class="metric-track"><div class="metric-fill safe" id="mf2"></div></div><div class="metric-val safe" id="mv2">0%</div></div>
+          <div><div class="metric-lbl">Consequence Risk</div><div class="metric-track"><div class="metric-fill warn" id="mf3"></div></div><div class="metric-val warn" id="mv3">0%</div></div>
+        </div>
+      </div>
+      <div class="prof-card" style="animation-delay:.16s;">
+        <h2 class="cst"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Wish Activity</h2>
+        <svg class="activity-svg" id="activityChart" viewBox="0 0 800 90" preserveAspectRatio="none" role="img" aria-label="Wish activity over time"></svg>
+      </div>
+      <div class="prof-card" style="animation-delay:.20s;">
+        <h2 class="cst">Granted Wishes</h2>
+        <div id="myWishesArchive">
+          <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,.17);letter-spacing:.2em;text-align:center;padding:18px 0;">NO WISHES GRANTED YET<br><br><button class="link-btn" style="color:rgba(139,0,0,.42);" onclick="go('make-wish')">// MAKE YOUR FIRST WISH //</button></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT — MODULAR ARCHITECTURE
+     Load order matters: each file may rely on globals
+     (data, state, or functions) defined by an earlier one.
+══════════════════════════════════════════════════ -->
+<script src="assets/js/constants.js"></script>
+<script src="assets/js/state.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/toast.js"></script>
+<script src="assets/js/overlay.js"></script>
+<script src="assets/js/bloodmoon.js"></script>
+<script src="assets/js/glitch.js"></script>
+<script src="assets/js/lore.js"></script>
+<script src="assets/js/cursor.js"></script>
+<script src="assets/js/atmosphere.js"></script>
+<script src="assets/js/oracle.js"></script>
+<script src="assets/js/ritual.js"></script>
+<script src="assets/js/feed.js"></script>
+<script src="assets/js/profile.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script src="assets/js/easter-eggs.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+/* ═══════════════════════════════════════════════════════════
+   GIRINGO — RESPONSIVE & ACCESSIBILITY OVERRIDES
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  nav { padding: 13px 18px; }
+  .nav-link:not(:last-of-type) { display: none; }
+  .feed-layout { flex-direction: column; padding: 16px; }
+  .sidebar { width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .landing-hero { padding: 108px 18px 55px; }
+  .illuminati-logo { width: 145px; height: 145px; }
+  .illum-svg { width: 145px; height: 145px; }
+  .mw-container { padding: 18px; }
+  .ritual-messages, .ritual-footer { padding: 14px 18px; }
+  .prof-container { padding: 18px; }
+  .prof-hero { flex-wrap: wrap; }
+  nav { padding: 12px 14px; }
+  .hero-cta { gap: 12px; }
+  .btn-primary, .btn-secondary { padding: 11px 28px; }
+}
+
+/* BUG FIX: the design hides the native cursor everywhere (`cursor: none`)
+   in favour of the custom JS cursor. On touch devices there is no mouse
+   pointer to replace, which previously left taps with no visual feedback
+   and made `#cursor` an inert, permanently-mispositioned circle. Restore
+   the native cursor behaviour for touch / coarse pointers. */
+@media (hover: none), (pointer: coarse) {
+  * , *::before, *::after { cursor: auto !important; }
+  #cursor, #cursor-trail { display: none !important; }
+}
+
+/* Accessibility: respect the user's OS-level motion preference. Disables
+   the (many) decorative animations without altering layout or colors. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
